@@ -276,24 +276,7 @@ class UseDeclarationSniff implements Sniff
      *
      * @return bool
      */
-    private function shouldIgnoreUse($phpcsFile, $stackPtr)
-    {
-        $tokens = $phpcsFile->getTokens();
-
-        // Ignore USE keywords inside closures and during live coding.
-        $next = $phpcsFile->findNext(Tokens::$emptyTokens, ($stackPtr + 1), null, true);
-        if ($next === false || $tokens[$next]['code'] === T_OPEN_PARENTHESIS) {
-            return true;
-        }
-
-        // Ignore USE keywords for traits.
-        if ($phpcsFile->hasCondition($stackPtr, [T_CLASS, T_TRAIT]) === true) {
-            return true;
-        }
-
-        return false;
-
-    }//end shouldIgnoreUse()
+    //end shouldIgnoreUse()
 
 
 }//end class

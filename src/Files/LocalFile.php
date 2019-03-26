@@ -163,51 +163,7 @@ class LocalFile extends File
      *
      * @return void
      */
-    private function replayErrors($errors, $warnings)
-    {
-        $this->errors       = [];
-        $this->warnings     = [];
-        $this->errorCount   = 0;
-        $this->warningCount = 0;
-        $this->fixableCount = 0;
-
-        foreach ($errors as $line => $lineErrors) {
-            foreach ($lineErrors as $column => $colErrors) {
-                foreach ($colErrors as $error) {
-                    $this->activeListener = $error['listener'];
-                    $this->addMessage(
-                        true,
-                        $error['message'],
-                        $line,
-                        $column,
-                        $error['source'],
-                        [],
-                        $error['severity'],
-                        $error['fixable']
-                    );
-                }
-            }
-        }
-
-        foreach ($warnings as $line => $lineErrors) {
-            foreach ($lineErrors as $column => $colErrors) {
-                foreach ($colErrors as $error) {
-                    $this->activeListener = $error['listener'];
-                    $this->addMessage(
-                        false,
-                        $error['message'],
-                        $line,
-                        $column,
-                        $error['source'],
-                        [],
-                        $error['severity'],
-                        $error['fixable']
-                    );
-                }
-            }
-        }
-
-    }//end replayErrors()
+    //end replayErrors()
 
 
 }//end class

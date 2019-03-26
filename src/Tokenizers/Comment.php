@@ -173,70 +173,7 @@ class Comment
      *
      * @return array
      */
-    private function processLine($string, $eolChar, $start, $end)
-    {
-        $tokens = [];
-
-        // Collect content padding.
-        $space = $this->collectWhitespace($string, $start, $end);
-        if ($space !== null) {
-            $tokens[] = $space;
-            $start   += strlen($space['content']);
-        }
-
-        if (isset($string[$start]) === false) {
-            return $tokens;
-        }
-
-        if ($string[$start] === '@') {
-            // The content up until the first whitespace is the tag name.
-            $matches = [];
-            preg_match('/@[^\s]+/', $string, $matches, 0, $start);
-            if (isset($matches[0]) === true
-                && substr(strtolower($matches[0]), 0, 7) !== '@phpcs:'
-            ) {
-                $tagName  = $matches[0];
-                $start   += strlen($tagName);
-                $tokens[] = [
-                    'content' => $tagName,
-                    'code'    => T_DOC_COMMENT_TAG,
-                    'type'    => 'T_DOC_COMMENT_TAG',
-                ];
-
-                // Then there will be some whitespace.
-                $space = $this->collectWhitespace($string, $start, $end);
-                if ($space !== null) {
-                    $tokens[] = $space;
-                    $start   += strlen($space['content']);
-                }
-            }
-        }//end if
-
-        // Process the rest of the line.
-        $eol = strpos($string, $eolChar, $start);
-        if ($eol === false) {
-            $eol = $end;
-        }
-
-        if ($eol > $start) {
-            $tokens[] = [
-                'content' => substr($string, $start, ($eol - $start)),
-                'code'    => T_DOC_COMMENT_STRING,
-                'type'    => 'T_DOC_COMMENT_STRING',
-            ];
-        }
-
-        if ($eol !== $end) {
-            $tokens[] = [
-                'content' => substr($string, $eol, strlen($eolChar)),
-                'code'    => T_DOC_COMMENT_WHITESPACE,
-                'type'    => 'T_DOC_COMMENT_WHITESPACE',
-            ];
-        }
-
-        return $tokens;
-
-    }//end processLine()
+    //end processLine()
 
 
     /**
@@ -248,30 +185,7 @@ class Comment
      *
      * @return array|null
      */
-    private function collectWhitespace($string, $start, $end)
-    {
-        $space = '';
-        for ($start; $start < $end; $start++) {
-            if ($string[$start] !== ' ' && $string[$start] !== "\t") {
-                break;
-            }
-
-            $space .= $string[$start];
-        }
-
-        if ($space === '') {
-            return null;
-        }
-
-        $token = [
-            'content' => $space,
-            'code'    => T_DOC_COMMENT_WHITESPACE,
-            'type'    => 'T_DOC_COMMENT_WHITESPACE',
-        ];
-
-        return $token;
-
-    }//end collectWhitespace()
+    //end collectWhitespace()
 
 
 }//end class

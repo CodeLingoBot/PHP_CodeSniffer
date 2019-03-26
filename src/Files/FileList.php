@@ -137,30 +137,7 @@ class FileList implements \Iterator, \Countable
      *
      * @return string
      */
-    private function getFilterClass()
-    {
-        $filterType = $this->config->filter;
-
-        if ($filterType === null) {
-            $filterClass = '\PHP_CodeSniffer\Filters\Filter';
-        } else {
-            if (strpos($filterType, '.') !== false) {
-                // This is a path to a custom filter class.
-                $filename = realpath($filterType);
-                if ($filename === false) {
-                    $error = "ERROR: Custom filter \"$filterType\" not found".PHP_EOL;
-                    throw new DeepExitException($error, 3);
-                }
-
-                $filterClass = Autoload::loadFile($filename);
-            } else {
-                $filterClass = '\PHP_CodeSniffer\Filters\\'.$filterType;
-            }
-        }
-
-        return $filterClass;
-
-    }//end getFilterClass()
+    //end getFilterClass()
 
 
     /**

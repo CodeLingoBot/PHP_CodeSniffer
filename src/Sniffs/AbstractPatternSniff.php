@@ -129,20 +129,7 @@ abstract class AbstractPatternSniff implements Sniff
      *
      * @return array<int, int>
      */
-    private function getPatternTokenTypes($pattern)
-    {
-        $tokenTypes = [];
-        foreach ($pattern as $pos => $patternInfo) {
-            if ($patternInfo['type'] === 'token') {
-                if (isset($tokenTypes[$patternInfo['token']]) === false) {
-                    $tokenTypes[$patternInfo['token']] = $pos;
-                }
-            }
-        }
-
-        return $tokenTypes;
-
-    }//end getPatternTokenTypes()
+    //end getPatternTokenTypes()
 
 
     /**
@@ -155,21 +142,7 @@ abstract class AbstractPatternSniff implements Sniff
      *             as the listener.
      * @throws \PHP_CodeSniffer\Exceptions\RuntimeException If we could not determine a token to listen for.
      */
-    private function getListenerTokenPos($pattern)
-    {
-        $tokenTypes = $this->getPatternTokenTypes($pattern);
-        $tokenCodes = array_keys($tokenTypes);
-        $token      = Tokens::getHighestWeightedToken($tokenCodes);
-
-        // If we could not get a token.
-        if ($token === false) {
-            $error = 'Could not determine a token to listen for';
-            throw new RuntimeException($error);
-        }
-
-        return $tokenTypes[$token];
-
-    }//end getListenerTokenPos()
+    //end getListenerTokenPos()
 
 
     /**
@@ -765,85 +738,7 @@ abstract class AbstractPatternSniff implements Sniff
      * @see    createSkipPattern()
      * @see    createTokenPattern()
      */
-    private function parse($pattern)
-    {
-        $patterns   = [];
-        $length     = strlen($pattern);
-        $lastToken  = 0;
-        $firstToken = 0;
-
-        for ($i = 0; $i < $length; $i++) {
-            $specialPattern = false;
-            $isLastChar     = ($i === ($length - 1));
-            $oldFirstToken  = $firstToken;
-
-            if (substr($pattern, $i, 3) === '...') {
-                // It's a skip pattern. The skip pattern requires the
-                // content of the token in the "from" position and the token
-                // to skip to.
-                $specialPattern = $this->createSkipPattern($pattern, ($i - 1));
-                $lastToken      = ($i - $firstToken);
-                $firstToken     = ($i + 3);
-                $i += 2;
-
-                if ($specialPattern['to'] !== 'unknown') {
-                    $firstToken++;
-                }
-            } else if (substr($pattern, $i, 3) === 'abc') {
-                $specialPattern = ['type' => 'string'];
-                $lastToken      = ($i - $firstToken);
-                $firstToken     = ($i + 3);
-                $i += 2;
-            } else if (substr($pattern, $i, 3) === 'EOL') {
-                $specialPattern = ['type' => 'newline'];
-                $lastToken      = ($i - $firstToken);
-                $firstToken     = ($i + 3);
-                $i += 2;
-            }//end if
-
-            if ($specialPattern !== false || $isLastChar === true) {
-                // If we are at the end of the string, don't worry about a limit.
-                if ($isLastChar === true) {
-                    // Get the string from the end of the last skip pattern, if any,
-                    // to the end of the pattern string.
-                    $str = substr($pattern, $oldFirstToken);
-                } else {
-                    // Get the string from the end of the last special pattern,
-                    // if any, to the start of this special pattern.
-                    if ($lastToken === 0) {
-                        // Note that if the last special token was zero characters ago,
-                        // there will be nothing to process so we can skip this bit.
-                        // This happens if you have something like: EOL... in your pattern.
-                        $str = '';
-                    } else {
-                        $str = substr($pattern, $oldFirstToken, $lastToken);
-                    }
-                }
-
-                if ($str !== '') {
-                    $tokenPatterns = $this->createTokenPattern($str);
-                    foreach ($tokenPatterns as $tokenPattern) {
-                        $patterns[] = $tokenPattern;
-                    }
-                }
-
-                // Make sure we don't skip the last token.
-                if ($isLastChar === false && $i === ($length - 1)) {
-                    $i--;
-                }
-            }//end if
-
-            // Add the skip pattern *after* we have processed
-            // all the tokens from the end of the last skip pattern
-            // to the start of this skip pattern.
-            if ($specialPattern !== false) {
-                $patterns[] = $specialPattern;
-            }
-        }//end for
-
-        return $patterns;
-
-    }//end parse()
+    //end parse()
 
 
     /**
@@ -856,48 +751,7 @@ abstract class AbstractPatternSniff implements Sniff
      * @see    createTokenPattern()
      * @see    parse()
      */
-    private function createSkipPattern($pattern, $from)
-    {
-        $skip = ['type' => 'skip'];
-
-        $nestedParenthesis = 0;
-        $nestedBraces      = 0;
-        for ($start = $from; $start >= 0; $start--) {
-            switch ($pattern[$start]) {
-            case '(':
-                if ($nestedParenthesis === 0) {
-                    $skip['to'] = 'parenthesis_closer';
-                }
-
-                $nestedParenthesis--;
-                break;
-            case '{':
-                if ($nestedBraces === 0) {
-                    $skip['to'] = 'scope_closer';
-                }
-
-                $nestedBraces--;
-                break;
-            case '}':
-                $nestedBraces++;
-                break;
-            case ')':
-                $nestedParenthesis++;
-                break;
-            }//end switch
-
-            if (isset($skip['to']) === true) {
-                break;
-            }
-        }//end for
-
-        if (isset($skip['to']) === false) {
-            $skip['to'] = 'unknown';
-        }
-
-        return $skip;
-
-    }//end createSkipPattern()
+    //end createSkipPattern()
 
 
     /**
@@ -909,28 +763,7 @@ abstract class AbstractPatternSniff implements Sniff
      * @see    createSkipPattern()
      * @see    parse()
      */
-    private function createTokenPattern($str)
-    {
-        // Don't add a space after the closing php tag as it will add a new
-        // whitespace token.
-        $tokenizer = new PHP('<?php '.$str.'?>', null);
-
-        // Remove the <?php tag from the front and the end php tag from the back.
-        $tokens = $tokenizer->getTokens();
-        $tokens = array_slice($tokens, 1, (count($tokens) - 2));
-
-        $patterns = [];
-        foreach ($tokens as $patternInfo) {
-            $patterns[] = [
-                'type'  => 'token',
-                'token' => $patternInfo['code'],
-                'value' => $patternInfo['content'],
-            ];
-        }
-
-        return $patterns;
-
-    }//end createTokenPattern()
+    //end createTokenPattern()
 
 
 }//end class

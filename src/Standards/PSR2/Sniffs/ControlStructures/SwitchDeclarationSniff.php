@@ -210,22 +210,7 @@ class SwitchDeclarationSniff implements Sniff
      *
      * @return int | bool
      */
-    private function findNextCase($phpcsFile, $stackPtr, $end)
-    {
-        $tokens = $phpcsFile->getTokens();
-        while (($stackPtr = $phpcsFile->findNext([T_CASE, T_DEFAULT, T_SWITCH], $stackPtr, $end)) !== false) {
-            // Skip nested SWITCH statements; they are handled on their own.
-            if ($tokens[$stackPtr]['code'] === T_SWITCH) {
-                $stackPtr = $tokens[$stackPtr]['scope_closer'];
-                continue;
-            }
-
-            break;
-        }
-
-        return $stackPtr;
-
-    }//end findNextCase()
+    //end findNextCase()
 
 
     /**
@@ -237,82 +222,7 @@ class SwitchDeclarationSniff implements Sniff
      *
      * @return bool
      */
-    private function findNestedTerminator($phpcsFile, $stackPtr, $end)
-    {
-        $tokens      = $phpcsFile->getTokens();
-        $terminators = [
-            T_RETURN,
-            T_BREAK,
-            T_CONTINUE,
-            T_THROW,
-            T_EXIT,
-        ];
-
-        $lastToken = $phpcsFile->findPrevious(T_WHITESPACE, ($end - 1), $stackPtr, true);
-        if ($lastToken !== false) {
-            if ($tokens[$lastToken]['code'] === T_CLOSE_CURLY_BRACKET) {
-                // We found a closing curly bracket and want to check if its
-                // block belongs to an IF, ELSEIF or ELSE clause. If yes, we
-                // continue searching for a terminating statement within that
-                // block. Note that we have to make sure that every block of
-                // the entire if/else statement has a terminating statement.
-                $currentCloser = $lastToken;
-                $hasElseBlock  = false;
-                do {
-                    $scopeOpener = $tokens[$currentCloser]['scope_opener'];
-                    $scopeCloser = $tokens[$currentCloser]['scope_closer'];
-
-                    $prevToken = $phpcsFile->findPrevious(T_WHITESPACE, ($scopeOpener - 1), $stackPtr, true);
-                    if ($prevToken === false) {
-                        return false;
-                    }
-
-                    // IF and ELSEIF clauses possess a condition we have to account for.
-                    if ($tokens[$prevToken]['code'] === T_CLOSE_PARENTHESIS) {
-                        $prevToken = $tokens[$prevToken]['parenthesis_owner'];
-                    }
-
-                    if ($tokens[$prevToken]['code'] === T_IF) {
-                        // If we have not encountered an ELSE clause by now, we cannot
-                        // be sure that the whole statement terminates in every case.
-                        if ($hasElseBlock === false) {
-                            return false;
-                        }
-
-                        return $this->findNestedTerminator($phpcsFile, ($scopeOpener + 1), $scopeCloser);
-                    } else if ($tokens[$prevToken]['code'] === T_ELSEIF
-                        || $tokens[$prevToken]['code'] === T_ELSE
-                    ) {
-                        // If we find a terminating statement within this block,
-                        // we continue with the previous ELSEIF or IF clause.
-                        $hasTerminator = $this->findNestedTerminator($phpcsFile, ($scopeOpener + 1), $scopeCloser);
-                        if ($hasTerminator === false) {
-                            return false;
-                        }
-
-                        $currentCloser = $phpcsFile->findPrevious(T_WHITESPACE, ($prevToken - 1), $stackPtr, true);
-                        if ($tokens[$prevToken]['code'] === T_ELSE) {
-                            $hasElseBlock = true;
-                        }
-                    } else {
-                        return false;
-                    }//end if
-                } while ($currentCloser !== false && $tokens[$currentCloser]['code'] === T_CLOSE_CURLY_BRACKET);
-
-                return true;
-            } else if ($tokens[$lastToken]['code'] === T_SEMICOLON) {
-                // We found the last statement of the CASE. Now we want to
-                // check whether it is a terminating one.
-                $terminator = $phpcsFile->findStartOfStatement(($lastToken - 1));
-                if (in_array($tokens[$terminator]['code'], $terminators, true) === true) {
-                    return $terminator;
-                }
-            }//end if
-        }//end if
-
-        return false;
-
-    }//end findNestedTerminator()
+    //end findNestedTerminator()
 
 
 }//end class
